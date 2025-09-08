@@ -16,47 +16,33 @@
     --border:#e5e7eb;
     --focus:#ffd54f;
     --radius:14px;
-    --tap:52px; /* >=44px */
+    --tap:52px;
   }
-  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial,sans-serif;line-height:1.5;font-size:16px;}
-  header{
-    position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--border);
-  }
-  .topbar{
-    display:flex; gap:12px; align-items:center; padding:10px 14px; flex-wrap:wrap;
-  }
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial,sans-serif;line-height:1.5;font-size:16px; height:100%; overflow:hidden;}
+  header{position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--border);}
+  .topbar{display:flex; gap:12px; align-items:center; padding:10px 14px; flex-wrap:wrap;}
   h1{font-size:1.25rem; margin:0;}
-  .progress{
-    margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-  }
-  .bar{
-    width:160px; height:10px; background:#eee; border-radius:20px; overflow:hidden;
-  }
+  .progress{margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .bar{width:160px; height:10px; background:#eee; border-radius:20px; overflow:hidden;}
   .bar>span{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--brand),var(--accent));}
   .pill{font-size:.875rem; color:#fff; background:var(--brand); padding:4px 10px; border-radius:999px;}
-  .wrap{
-    display:grid; gap:0; grid-template-columns:1fr; min-height:calc(100vh - 64px);
-  }
-  /* Split-screen on larger screens */
+  .wrap{display:grid; gap:0; grid-template-columns:1fr; height:calc(100vh - var(--header-h, 0px));}
   @media (min-width:900px){
-    .wrap{grid-template-columns: minmax(300px, 42%) 1fr;}
+    .wrap{grid-template-columns:minmax(300px, 42%) 1fr;}
     .ref-col{border-right:1px solid var(--border);}
   }
-  .ref-col, .q-col{overflow:auto;}
-  .section-header{
-    padding:12px 16px; border-bottom:1px solid var(--border); background:#fafafa; position:sticky; top:0; z-index:1;
-  }
+  .ref-col, .q-col{overflow:auto; -webkit-overflow-scrolling: touch;}
+  .section-header{padding:12px 16px; border-bottom:1px solid var(--border); background:#fafafa; position:sticky; top:0; z-index:1;}
   .ref-controls{display:flex; gap:8px; flex-wrap:wrap;}
   .tab{
     border:1px solid var(--border); background:#fff; padding:8px 10px; border-radius:999px; cursor:pointer;
     min-height:var(--tap); display:flex; align-items:center;
+    color:var(--ink); /* ensure readable when not selected */
   }
   .tab[aria-selected="true"]{border-color:var(--brand); color:#fff; background:var(--brand);}
   .ref-pane{padding:14px; display:none;}
   .ref-pane[aria-hidden="false"]{display:block;}
-  .ref-card{
-    background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin:12px 0;
-  }
+  .ref-card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin:12px 0;}
   .ref-card h3{margin:.2rem 0 .4rem 0}
   .q-list{padding:14px;}
   .q-card{
@@ -68,28 +54,18 @@
   .q-text{margin:.5rem 0;}
   .choices{display:grid; gap:8px; grid-template-columns:1fr 1fr;}
   @media (max-width:420px){ .choices{grid-template-columns:1fr;} }
-  .choice{
-    border:1px solid var(--border); border-radius:10px; padding:10px; min-height:var(--tap); display:flex; align-items:center; gap:10px; background:#fff;
-  }
+  .choice{border:1px solid var(--border); border-radius:10px; padding:10px; min-height:var(--tap); display:flex; align-items:center; gap:10px; background:#fff;}
   .choice input{width:22px; height:22px;}
   .textgap{width:100%; min-height:var(--tap); padding:10px; border-radius:10px; border:1px solid var(--border); font-size:1rem;}
   .helper{font-size:.85rem; color:var(--muted); margin-top:6px;}
-  .toolbar{
-    position:sticky; bottom:0; background:rgba(255,255,255,.98); border-top:1px solid var(--border);
-    display:flex; gap:8px; padding:10px; flex-wrap:wrap;
-  }
-  button, .button{
-    appearance:none; border:none; background:var(--brand); color:#fff; padding:10px 14px; border-radius:10px; font-size:1rem; min-height:var(--tap); cursor:pointer;
-  }
+  .toolbar{position:sticky; bottom:0; background:rgba(255,255,255,.98); border-top:1px solid var(--border); display:flex; gap:8px; padding:10px; flex-wrap:wrap;}
+  button, .button{appearance:none; border:none; background:var(--brand); color:#fff; padding:10px 14px; border-radius:10px; font-size:1rem; min-height:var(--tap); cursor:pointer;}
   button.secondary, .button.secondary{background:#eee; color:#111;}
   button.success{background:var(--accent);}
   button.warn{background:var(--warn);}
   .error{border-color:var(--warn) !important; box-shadow:0 0 0 3px rgba(198,40,40,.12);}
-  .collapser{
-    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; min-height:var(--tap);
-  }
+  .collapser{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; min-height:var(--tap); color:var(--ink) !important;}
   .hidden{display:none !important;}
-  /* Review page */
   .review{padding:14px;}
   .rev-card{border:1px solid var(--border); border-radius:12px; padding:12px; margin:10px 0; background:#fff;}
   .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.9rem; background:#f6f8fa; padding:8px; border-radius:8px; overflow:auto;}
@@ -112,13 +88,15 @@
   <aside class="ref-col" id="refCol" aria-label="Reference texts">
     <div class="section-header">
       <div class="ref-controls" role="tablist" aria-label="Reference tabs">
-        <button class="tab" role="tab" aria-selected="true" aria-controls="pane-p1" id="tab-p1">Part 1 Text</button>
+        <button class="tab" role="tab" aria-selected="true"  aria-controls="pane-p1" id="tab-p1">Part 1 Text</button>
         <button class="tab" role="tab" aria-selected="false" aria-controls="pane-p2" id="tab-p2">Part 2 Text</button>
         <button class="tab" role="tab" aria-selected="false" aria-controls="pane-p4" id="tab-p4">Part 4 Intro</button>
         <button class="tab" role="tab" aria-selected="false" aria-controls="pane-p6" id="tab-p6">Part 6 Reviews</button>
         <button class="tab" role="tab" aria-selected="false" aria-controls="pane-p8" id="tab-p8">Part 8 Consultants</button>
       </div>
     </div>
+
+    <!-- FULL reference texts (visible when tab is active) -->
     <div id="pane-p1" class="ref-pane" aria-hidden="false">
       <div class="ref-card">
         <h3>Part 1 — Studying black bears</h3>
@@ -126,19 +104,22 @@
         <p>The (2) …….. this has given him into their behaviour has allowed him to dispel certain myths about bears. (3) …….. to popular belief, he contends that bears do not (4) …….. as much for fruit as previously supposed.</p>
       </div>
     </div>
+
     <div id="pane-p2" class="ref-pane" aria-hidden="true">
       <div class="ref-card">
         <h3>Part 2 — The origin of language (excerpt)</h3>
         <p>Language (12) …….. well be programmed into the brain but, (13) …….. this, people still need stimulus from others around them. From studies, we know that (14).......... children are isolated from human contact and have not learnt to construct sentences before they are ten, it is doubtful they will ever do so. This research shows, if (15)........... else, that language is a social activity, not something invented (16).......... isolation.</p>
       </div>
     </div>
+
     <div id="pane-p4" class="ref-pane" aria-hidden="true">
       <div class="ref-card">
-        <h3>Part 4 — Instructions</h3>
+        <h3>Part 4 — Instructions & Example</h3>
         <p class="instructions">For questions 25–30, complete the second sentence so that it has a similar meaning to the first sentence, using the word given. Do not change the word given. You must use between three and six words, including the word given.</p>
         <p class="helper">Example: <em>James would only speak to the head of department alone.</em> <strong>ON</strong> → “James <u>INSISTED ON SPEAKING</u> to the head of department alone.”</p>
       </div>
     </div>
+
     <div id="pane-p6" class="ref-pane" aria-hidden="true">
       <div class="ref-card">
         <h3>Part 6 — The Architecture of Happiness (Reviews A–D)</h3>
@@ -152,6 +133,7 @@
         <p>Do we want our buildings merely to shelter us, or do we also want them to speak to us? Can the right sort of architecture even improve our character? Music mirrors the dynamics of our emotional lives. Mightn’t architecture work the same way? De Botton thinks so, and in <em>The Architecture of Happiness</em> he makes the most of this theme on his jolly trip through the world of architecture. De Botton certainly writes with conviction and, while focusing on happiness can be a lovely way to make sense of architectural beauty, it probably won’t be of much help in resolving conflicts of taste.</p>
       </div>
     </div>
+
     <div id="pane-p8" class="ref-pane" aria-hidden="true">
       <div class="ref-card">
         <h3>Part 8 — Starting out on your career (Consultants A–E)</h3>
@@ -240,7 +222,7 @@
         <div class="part-title">Part 4 – Key word transformations (Q25–26, 30)</div>
         <div class="instructions">Complete the second sentence using the word given. 3–6 words. Use CAPITAL LETTERS.</div>
 
-        <!-- Q25 normalized to match others (stem → keyword → response line) -->
+        <!-- Q25 normalized -->
         <div class="q-text"><strong>25</strong>. My brother now earns far less than he did when he was younger.</div>
         <div class="helper"><strong>NEARLY</strong></div>
         <input class="textgap" id="q25" name="q25" placeholder="My brother ______________________________ much now as he did when he was younger." />
@@ -348,7 +330,6 @@
   </section>
 </main>
 
-<!-- Review modal (simple page swap) -->
 <section id="reviewPage" class="review hidden" aria-label="Review answers">
   <h2>Answer Review</h2>
   <div id="reviewContainer"></div>
@@ -375,39 +356,24 @@ function qs(sel, root=document){ return root.querySelector(sel); }
 function qsa(sel, root=document){ return [...root.querySelectorAll(sel)]; }
 
 function loadState(){
-  try{
-    const raw = localStorage.getItem(localKey);
-    return raw ? JSON.parse(raw) : {};
-  }catch(e){return {}}
+  try{ const raw = localStorage.getItem(localKey); return raw ? JSON.parse(raw) : {}; }catch(e){return {}}
 }
-function saveState(state){
-  localStorage.setItem(localKey, JSON.stringify(state));
-}
+function saveState(state){ localStorage.setItem(localKey, JSON.stringify(state)); }
 function getAnswers(){
   const state = {};
-  // radio groups
   qsa('.choices').forEach(group=>{
-    const name = group.getAttribute('data-q') || group.querySelector('input')?.name.replace(/^q/,'');
     const inputs = qsa('input[type="radio"]', group);
+    if(!inputs.length) return;
     const checked = inputs.find(i=>i.checked);
-    const qid = inputs[0]?.name;
-    if(qid){ state[qid] = checked ? checked.value : ""; }
+    const qid = inputs[0].name;
+    state[qid] = checked ? checked.value : "";
   });
-  // text gaps
-  qsa('.textgap').forEach(input=>{
-    state[input.name] = input.value.trim();
-  });
+  qsa('.textgap').forEach(input=>{ state[input.name] = input.value.trim(); });
   return state;
 }
 function setAnswers(state){
-  // radio
-  qsa('input[type="radio"]').forEach(inp=>{
-    if(state[inp.name] === inp.value){ inp.checked = true; }
-  });
-  // text
-  qsa('.textgap').forEach(inp=>{
-    if(state[inp.name] != null){ inp.value = state[inp.name]; }
-  });
+  qsa('input[type="radio"]').forEach(inp=>{ if(state[inp.name] === inp.value) inp.checked = true; });
+  qsa('.textgap').forEach(inp=>{ if(state[inp.name] != null) inp.value = state[inp.name]; });
 }
 function updateProgress(){
   const state = getAnswers();
@@ -417,17 +383,23 @@ function updateProgress(){
   qs('#totalCount').textContent = TOTAL;
   qs('#barFill').style.width = (done/TOTAL*100).toFixed(0)+'%';
 }
-function autosave(){
-  saveState(getAnswers());
-  updateProgress();
-}
+function autosave(){ saveState(getAnswers()); updateProgress(); }
 function scrollToQuestion(qid){
   const el = document.getElementById(qid) || qsa(`[name="${qid}"]`)[0];
-  if(el){
-    el.scrollIntoView({behavior:'smooth', block:'center'});
-    el.focus({preventScroll:true});
-  }
+  if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); el.focus({preventScroll:true}); }
 }
+
+/* -------------------------
+   Layout sizing
+--------------------------*/
+
+// Compute header height so the two columns can scroll independently within the remaining viewport
+function setHeaderHeight(){
+  const h = document.querySelector('header')?.offsetHeight || 0;
+  document.documentElement.style.setProperty('--header-h', h + 'px');
+}
+window.addEventListener('load', setHeaderHeight);
+window.addEventListener('resize', setHeaderHeight);
 
 /* -------------------------
    Initialize
@@ -435,13 +407,13 @@ function scrollToQuestion(qid){
 setAnswers(loadState());
 updateProgress();
 
-// listeners for autosave
+// autosave listeners
 qsa('input').forEach(i=>{
   i.addEventListener('change', autosave);
   i.addEventListener('input', autosave);
 });
 
-// split/collapse reference
+// Show/hide reference column
 const toggleRef = qs('#toggleRef');
 toggleRef.addEventListener('click', ()=>{
   const col = qs('#refCol');
@@ -450,14 +422,17 @@ toggleRef.addEventListener('click', ()=>{
   toggleRef.textContent = hidden ? "Show reference" : "Hide reference";
 });
 
-// tabs
+// Tabs — FIXED: use aria-controls to find pane
 qsa('.tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
-    const id = tab.id.replace('tab','pane');
+    const paneId = tab.getAttribute('aria-controls');         // e.g., "pane-p6"
+    const paneEl = document.getElementById(paneId);
+    // Deselect all tabs and hide all panes
     qsa('.tab').forEach(t=>t.setAttribute('aria-selected','false'));
     qsa('.ref-pane').forEach(p=>p.setAttribute('aria-hidden','true'));
+    // Activate clicked tab and its pane
     tab.setAttribute('aria-selected','true');
-    qs(id).setAttribute('aria-hidden','false');
+    if(paneEl) paneEl.setAttribute('aria-hidden','false');
   });
 });
 
@@ -467,17 +442,13 @@ qsa('.tab').forEach(tab=>{
 function validate(){
   let state = getAnswers();
   let firstError = null;
-  // clear previous error styles
   qsa('.error').forEach(el=>el.classList.remove('error'));
-  // check each required
   required.forEach(q=>{
     const v = state[q];
     if(!v){
-      // find element(s)
       const inpText = qs(`#${q}`) || qs(`[name="${q}"]`);
       if(inpText){
         if(inpText.type === "radio"){
-          // highlight group
           const group = inpText.closest('.choices');
           if(group) group.classList.add('error');
         } else {
@@ -501,14 +472,7 @@ function buildReview(state){
   const container = qs('#reviewContainer');
   container.innerHTML = "";
   const parts = {};
-  // map qid to readable label
-  const labels = {
-    q1:"1", q2:"2", q3:"3", q4:"4",
-    q12:"12", q13:"13", q14:"14", q15:"15", q16:"16",
-    q25:"25", q26:"26", q30:"30",
-    q37:"37", q38:"38",
-    q47:"47", q48:"48", q49:"49", q54:"54", q55:"55", q56:"56"
-  };
+  const labels = { q1:"1", q2:"2", q3:"3", q4:"4", q12:"12", q13:"13", q14:"14", q15:"15", q16:"16", q25:"25", q26:"26", q30:"30", q37:"37", q38:"38", q47:"47", q48:"48", q49:"49", q54:"54", q55:"55", q56:"56" };
   Object.keys(state).forEach(k=>{
     if(!(k in labels)) return;
     let part = "Misc";
@@ -530,7 +494,6 @@ function buildReview(state){
     });
     container.appendChild(card);
   });
-  // JSON preview
   const pre = document.createElement('pre');
   pre.className = 'mono';
   pre.textContent = JSON.stringify(state, null, 2);
@@ -588,10 +551,9 @@ qs('#btnExportJson').addEventListener('click', ()=>{
   download("answers.json", json, "application/json");
 });
 
-// mailto
 qs('#mailtoBtn').addEventListener('click', (e)=>{
   if(!validate()){ e.preventDefault(); return; }
-  const to = ""; // optional: fill in default recipient
+  const to = ""; // set a default recipient if you like
   const subject = encodeURIComponent("C1 Practice Extract — Answers");
   const body = encodeURIComponent(answersAsText(getAnswers()));
   const href = `mailto:${to}?subject=${subject}&body=${body}`;
@@ -615,14 +577,6 @@ qs('#btnClear').addEventListener('click', ()=>{
 if(location.hash){
   setTimeout(()=> scrollToQuestion(location.hash.slice(1)), 200);
 }
-
-/* -------------------------
-   Optional: basic offline hint
---------------------------*/
-window.addEventListener('load', ()=> {
-  // The single-file app works offline after initial load via browser cache.
-  // No service-worker used to keep it dependency-free.
-});
 </script>
 </body>
 </html>
