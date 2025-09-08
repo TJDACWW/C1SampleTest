@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>C1 Advanced — Reading & Use of English (Practice Extract)</title>
+<style>
+  :root{
+    --bg:#ffffff;
+    --ink:#111;
+    --muted:#666;
+    --brand:#0a66ff;
+    --accent:#0f9d58;
+    --warn:#c62828;
+    --card:#f7f7f9;
+    --border:#e5e7eb;
+    --focus:#ffd54f;
+    --radius:14px;
+    --tap:52px; /* >=44px */
+  }
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial,sans-serif;line-height:1.5;font-size:16px;}
+  header{
+    position:sticky; top:0; z-index:10; background:#fff; border-bottom:1px solid var(--border);
+  }
+  .topbar{
+    display:flex; gap:12px; align-items:center; padding:10px 14px; flex-wrap:wrap;
+  }
+  h1{font-size:1.25rem; margin:0;}
+  .progress{
+    margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .bar{
+    width:160px; height:10px; background:#eee; border-radius:20px; overflow:hidden;
+  }
+  .bar>span{display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--brand),var(--accent));}
+  .pill{font-size:.875rem; color:#fff; background:var(--brand); padding:4px 10px; border-radius:999px;}
+  .wrap{
+    display:grid; gap:0; grid-template-columns:1fr; min-height:calc(100vh - 64px);
+  }
+  /* Split-screen on larger screens */
+  @media (min-width:900px){
+    .wrap{grid-template-columns: minmax(300px, 42%) 1fr;}
+    .ref-col{border-right:1px solid var(--border);}
+  }
+  .ref-col, .q-col{overflow:auto;}
+  .section-header{
+    padding:12px 16px; border-bottom:1px solid var(--border); background:#fafafa; position:sticky; top:0; z-index:1;
+  }
+  .ref-controls{display:flex; gap:8px; flex-wrap:wrap;}
+  .tab{
+    border:1px solid var(--border); background:#fff; padding:8px 10px; border-radius:999px; cursor:pointer;
+    min-height:var(--tap); display:flex; align-items:center;
+  }
+  .tab[aria-selected="true"]{border-color:var(--brand); color:#fff; background:var(--brand);}
+  .ref-pane{padding:14px; display:none;}
+  .ref-pane[aria-hidden="false"]{display:block;}
+  .ref-card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin:12px 0;
+  }
+  .ref-card h3{margin:.2rem 0 .4rem 0}
+  .q-list{padding:14px;}
+  .q-card{
+    background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin:12px 0;
+    box-shadow:0 1px 0 rgba(0,0,0,0.02);
+  }
+  .part-title{margin:.2rem 0 .25rem 0; font-weight:700;}
+  .instructions{color:var(--muted); font-size:.95rem; margin:.25rem 0 .75rem;}
+  .q-text{margin:.5rem 0;}
+  .choices{display:grid; gap:8px; grid-template-columns:1fr 1fr;}
+  @media (max-width:420px){ .choices{grid-template-columns:1fr;} }
+  .choice{
+    border:1px solid var(--border); border-radius:10px; padding:10px; min-height:var(--tap); display:flex; align-items:center; gap:10px; background:#fff;
+  }
+  .choice input{width:22px; height:22px;}
+  .textgap{width:100%; min-height:var(--tap); padding:10px; border-radius:10px; border:1px solid var(--border); font-size:1rem;}
+  .helper{font-size:.85rem; color:var(--muted); margin-top:6px;}
+  .toolbar{
+    position:sticky; bottom:0; background:rgba(255,255,255,.98); border-top:1px solid var(--border);
+    display:flex; gap:8px; padding:10px; flex-wrap:wrap;
+  }
+  button, .button{
+    appearance:none; border:none; background:var(--brand); color:#fff; padding:10px 14px; border-radius:10px; font-size:1rem; min-height:var(--tap); cursor:pointer;
+  }
+  button.secondary, .button.secondary{background:#eee; color:#111;}
+  button.success{background:var(--accent);}
+  button.warn{background:var(--warn);}
+  .error{border-color:var(--warn) !important; box-shadow:0 0 0 3px rgba(198,40,40,.12);}
+  .collapser{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; min-height:var(--tap);
+  }
+  .hidden{display:none !important;}
+  /* Review page */
+  .review{padding:14px;}
+  .rev-card{border:1px solid var(--border); border-radius:12px; padding:12px; margin:10px 0; background:#fff;}
+  .mono{font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.9rem; background:#f6f8fa; padding:8px; border-radius:8px; overflow:auto;}
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar" role="banner">
+    <h1>Reading &amp; Use of English — Practice Extract</h1>
+    <button id="toggleRef" class="collapser" aria-expanded="true" aria-controls="refCol">Hide reference</button>
+    <div class="progress" aria-live="polite">
+      <div class="pill"><span id="doneCount">0</span>/<span id="totalCount">20</span> answered</div>
+      <div class="bar" aria-hidden="true"><span id="barFill"></span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app">
+  <!-- Reference Column -->
+  <aside class="ref-col" id="refCol" aria-label="Reference texts">
+    <div class="section-header">
+      <div class="ref-controls" role="tablist" aria-label="Reference tabs">
+        <button class="tab" role="tab" aria-selected="true" aria-controls="pane-p1" id="tab-p1">Part 1 Text</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="pane-p2" id="tab-p2">Part 2 Text</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="pane-p4" id="tab-p4">Part 4 Intro</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="pane-p6" id="tab-p6">Part 6 Reviews</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="pane-p8" id="tab-p8">Part 8 Consultants</button>
+      </div>
+    </div>
+    <div id="pane-p1" class="ref-pane" aria-hidden="false">
+      <div class="ref-card">
+        <h3>Part 1 — Studying black bears</h3>
+        <p>After years studying North America’s black bears in the (0) …….. way, wildlife biologist Luke Robertson felt no closer to understanding the creatures. He realised that he had to (1)........... their trust. Abandoning scientific detachment, he took the daring step of forming relationships with the animals, bringing them food to gain their acceptance.</p>
+        <p>The (2) …….. this has given him into their behaviour has allowed him to dispel certain myths about bears. (3) …….. to popular belief, he contends that bears do not (4) …….. as much for fruit as previously supposed.</p>
+      </div>
+    </div>
+    <div id="pane-p2" class="ref-pane" aria-hidden="true">
+      <div class="ref-card">
+        <h3>Part 2 — The origin of language (excerpt)</h3>
+        <p>Language (12) …….. well be programmed into the brain but, (13) …….. this, people still need stimulus from others around them. From studies, we know that (14).......... children are isolated from human contact and have not learnt to construct sentences before they are ten, it is doubtful they will ever do so. This research shows, if (15)........... else, that language is a social activity, not something invented (16).......... isolation.</p>
+      </div>
+    </div>
+    <div id="pane-p4" class="ref-pane" aria-hidden="true">
+      <div class="ref-card">
+        <h3>Part 4 — Instructions</h3>
+        <p class="instructions">For questions 25–30, complete the second sentence so that it has a similar meaning to the first sentence, using the word given. Do not change the word given. You must use between three and six words, including the word given.</p>
+        <p class="helper">Example: <em>James would only speak to the head of department alone.</em> <strong>ON</strong> → “James <u>INSISTED ON SPEAKING</u> to the head of department alone.”</p>
+      </div>
+    </div>
+    <div id="pane-p6" class="ref-pane" aria-hidden="true">
+      <div class="ref-card">
+        <h3>Part 6 — The Architecture of Happiness (Reviews A–D)</h3>
+        <h4>Reviewer A</h4>
+        <p>Alain de Botton is a brave and highly intelligent writer who writes about complex subjects, clarifying the arcane for the layman. Now, with typical self-assurance, he has turned to the subject of architecture. The essential theme of his book is how architecture influences mood and behaviour. It is not about the specifically architectural characteristics of space and design, but much more about the emotions that architecture inspires in the users of buildings. Yet architects do not normally talk nowadays very much about emotion and beauty. They talk about design and function. De Botton's message, then, is fairly simple but worthwhile precisely because it is simple, readable and timely. His commendable aim is to encourage architects, and society more generally, to pay more attention to the psychological consequences of design in architecture: architecture should be treated as something that affects all our lives, our happiness and well-being.</p>
+        <h4>Reviewer B</h4>
+        <p>Alain de Botton raises important, previously unasked, questions concerning the quest for beauty in architecture, or its rejection or denial. Yet one is left with the feeling that he needed the help and support of earlier authors on the subject to walk him across the daunting threshold of architecture itself. And he is given to making extraordinary claims: ‘Architecture is perplexing ... in how inconsistent is its capacity to generate the happiness on which its claim to our attention is founded.’ If architecture's capacity to generate happiness is inconsistent, this might be because happiness has rarely been something architects think about. De Botton never once discusses the importance of such dull, yet determining, matters as finance or planning laws, much less inventions such as the lift or reinforced concrete. He appears to believe that architects are still masters of their art, when increasingly they are cogs in a global machine for building in which beauty, and how de Botton feels about it, are increasingly beside the point.</p>
+        <h4>Reviewer C</h4>
+        <p>In <em>The Architecture of Happiness</em>, Alain de Botton has a great time making bold and amusing judgements about architecture, with lavish and imaginative references, but anyone in search of privileged insights into the substance of building design should be warned that he is not looking at drain schedules or pipe runs. He worries away, as many architects do, at how inert material things can convey meaning and alter consciousness. Although he is a rigorous thinker, most of de Botton’s revelations, such as the contradictions in Le Corbusier's theory and practice, are not particularly new. However, this is an engaging and intelligent book on architecture and something everyone, professionals within the field in particular, should read.</p>
+        <h4>Reviewer D</h4>
+        <p>Do we want our buildings merely to shelter us, or do we also want them to speak to us? Can the right sort of architecture even improve our character? Music mirrors the dynamics of our emotional lives. Mightn’t architecture work the same way? De Botton thinks so, and in <em>The Architecture of Happiness</em> he makes the most of this theme on his jolly trip through the world of architecture. De Botton certainly writes with conviction and, while focusing on happiness can be a lovely way to make sense of architectural beauty, it probably won’t be of much help in resolving conflicts of taste.</p>
+      </div>
+    </div>
+    <div id="pane-p8" class="ref-pane" aria-hidden="true">
+      <div class="ref-card">
+        <h3>Part 8 — Starting out on your career (Consultants A–E)</h3>
+        <h4>Consultant A</h4>
+        <p>A university degree is no guarantee of a job, and job hunting in itself requires a whole set of skills. If you find you are not getting past the first interview, ask yourself what is happening. Is it a failure to communicate or are there some skills you lack? Once you see patterns emerging it will help you decide whether the gaps you have identified can be filled relatively easily. If you cannot work out what the mismatch is, get back to the selection panel with more probing questions, and find out what you need to do to bring yourself up to the level of qualification that would make you more attractive to them: but be careful to make this sound like a genuine request rather than a challenge or complaint.</p>
+        <h4>Consultant B</h4>
+        <p>Do not be too dispirited if you are turned down for a job, but think about the reasons the employers give. They often say it is because others are ‘better qualified’, but they use the term loosely. Those who made the second interview might have been studying the same subject as you and be of similar ability level, but they had something which made them a closer match to the selector’s ideal. That could be experience gained through projects or vacation work, or it might be that they were better at communicating what they could offer. Do not take the comments at face value: think back to the interviews that generated them and make a list of where you think the shortfall in your performance lies. With this sort of analytical approach you will eventually get your foot in the door.</p>
+        <h4>Consultant C</h4>
+        <p>Deciding how long you should stay in your first job is a tough call. Stay too long and future employers may question your drive and ambition. Of course, it depends where you are aiming. There can be advantages in moving sideways rather than up, if you want to gain real depth of knowledge. If you are a graduate, spending five or six years in the same job is not too long provided that you take full advantage of the experience. However, do not use this as an excuse for apathy. Graduates sometimes fail to take ownership of their careers and take the initiative. It is up to you to make the most of what’s available within a company, and to monitor your progress in case you need to move on. This applies particularly if you are still not sure where your career path lies.</p>
+        <h4>Consultant D</h4>
+        <p>It is helpful to think through what kind of experience you need to get your dream job and it is not a problem to move around to a certain extent. But in the early stages of your career you need a definite strategy for reaching your goal, so think about that carefully before deciding to move on from your first job. You must cultivate patience to master any role. There is no guarantee that you will get adequate training, and research has shown that if you do not receive proper help in a new role, it can take 18 months to master it.</p>
+        <h4>Consultant E</h4>
+        <p>A prospective employer does not want to see that you have changed jobs every six months with no thread running between them. You need to be able to demonstrate the quality of your experience to a future employer, and too many moves too quickly can be a bad thing. In any company it takes three to six months for a new employee to get up to speed with the structure and the culture of the company. From the company’s perspective, they will not receive any return on the investment in your salary until you have been there for 18 months. This is when they begin to get most value from you – you are still fired up and enthusiastic. If you leave after six months it has not been a good investment – and may make other employers wary.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Questions Column -->
+  <section class="q-col" id="qCol" aria-label="Questions">
+    <div class="section-header">
+      <strong>Answer panel</strong>
+      <div class="instructions">Tap a tab on the left (or above) for reference. Your work auto-saves.</div>
+    </div>
+
+    <div class="q-list" id="qList">
+      <!-- Part 1 -->
+      <div class="q-card" data-part="Part 1">
+        <div class="part-title">Part 1 – Multiple choice cloze (Q1–4)</div>
+        <div class="instructions">Choose the correct word (A–D).</div>
+
+        <div class="q-text"><strong>1</strong>. A catch &nbsp; B win &nbsp; C achieve &nbsp; D receive</div>
+        <div class="choices" data-q="1" role="group" aria-label="Question 1 choices">
+          <label class="choice"><input type="radio" name="q1" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q1" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q1" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q1" value="D"> D</label>
+        </div>
+
+        <div class="q-text"><strong>2</strong>. A perception &nbsp; B awareness &nbsp; C insight &nbsp; D vision</div>
+        <div class="choices" data-q="2" role="group" aria-label="Question 2 choices">
+          <label class="choice"><input type="radio" name="q2" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q2" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q2" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q2" value="D"> D</label>
+        </div>
+
+        <div class="q-text"><strong>3</strong>. A Opposite &nbsp; B Opposed &nbsp; C Contrary &nbsp; D Contradictory</div>
+        <div class="choices" data-q="3" role="group" aria-label="Question 3 choices">
+          <label class="choice"><input type="radio" name="q3" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q3" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q3" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q3" value="D"> D</label>
+        </div>
+
+        <div class="q-text"><strong>4</strong>. A care &nbsp; B bother &nbsp; C desire &nbsp; D hope</div>
+        <div class="choices" data-q="4" role="group" aria-label="Question 4 choices">
+          <label class="choice"><input type="radio" name="q4" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q4" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q4" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q4" value="D"> D</label>
+        </div>
+      </div>
+
+      <!-- Part 2 -->
+      <div class="q-card" data-part="Part 2">
+        <div class="part-title">Part 2 – Open cloze (Q12–16)</div>
+        <div class="instructions">Type ONE word in each gap. Use CAPITAL LETTERS.</div>
+        <label class="q-text" for="q12"><strong>12</strong>.</label>
+        <input class="textgap" id="q12" name="q12" maxlength="20" placeholder="TYPE HERE" />
+
+        <label class="q-text" for="q13"><strong>13</strong>.</label>
+        <input class="textgap" id="q13" name="q13" maxlength="20" placeholder="TYPE HERE" />
+
+        <label class="q-text" for="q14"><strong>14</strong>.</label>
+        <input class="textgap" id="q14" name="q14" maxlength="20" placeholder="TYPE HERE" />
+
+        <label class="q-text" for="q15"><strong>15</strong>.</label>
+        <input class="textgap" id="q15" name="q15" maxlength="20" placeholder="TYPE HERE" />
+
+        <label class="q-text" for="q16"><strong>16</strong>.</label>
+        <input class="textgap" id="q16" name="q16" maxlength="20" placeholder="TYPE HERE" />
+      </div>
+
+      <!-- Part 4 -->
+      <div class="q-card" data-part="Part 4">
+        <div class="part-title">Part 4 – Key word transformations (Q25–26, 30)</div>
+        <div class="instructions">Complete the second sentence using the word given. 3–6 words. Use CAPITAL LETTERS.</div>
+
+        <!-- Q25 normalized to match others (stem → keyword → response line) -->
+        <div class="q-text"><strong>25</strong>. My brother now earns far less than he did when he was younger.</div>
+        <div class="helper"><strong>NEARLY</strong></div>
+        <input class="textgap" id="q25" name="q25" placeholder="My brother ______________________________ much now as he did when he was younger." />
+
+        <div class="q-text"><strong>26</strong>. They are demolishing the old bus station and replacing it with a new one.</div>
+        <div class="helper"><strong>PULLED</strong></div>
+        <input class="textgap" id="q26" name="q26" placeholder="The old bus station is ______________________________ with a new one." />
+
+        <div class="q-text"><strong>30</strong>. ‘I must warn you how dangerous it is to cycle at night without any lights,’ said the police officer to Max.</div>
+        <div class="helper"><strong>DANGERS</strong></div>
+        <input class="textgap" id="q30" name="q30" placeholder="Max received a ______________________________ at night without any lights from the police officer." />
+      </div>
+
+      <!-- Part 6 -->
+      <div class="q-card" data-part="Part 6">
+        <div class="part-title">Part 6 – Cross-text multiple matching (Q37–38)</div>
+        <div class="instructions">Choose the reviewer (A–D).</div>
+
+        <div class="q-text"><strong>37</strong>. Has a different opinion from the others on the confidence with which de Botton discusses architecture?</div>
+        <div class="choices" data-q="37">
+          <label class="choice"><input type="radio" name="q37" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q37" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q37" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q37" value="D"> D</label>
+        </div>
+
+        <div class="q-text"><strong>38</strong>. Shares reviewer A’s opinion whether architects should take note of de Botton’s ideas?</div>
+        <div class="choices" data-q="38">
+          <label class="choice"><input type="radio" name="q38" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q38" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q38" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q38" value="D"> D</label>
+        </div>
+      </div>
+
+      <!-- Part 8 -->
+      <div class="q-card" data-part="Part 8">
+        <div class="part-title">Part 8 – Multiple matching (Q47–49, 54–56)</div>
+        <div class="instructions">Choose the consultant (A–E).</div>
+
+        <div class="q-text"><strong>47</strong>. Keep your final objective in mind when you are planning to change jobs.</div>
+        <div class="choices" data-q="47">
+          <label class="choice"><input type="radio" name="q47" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q47" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q47" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q47" value="D"> D</label>
+          <label class="choice"><input type="radio" name="q47" value="E"> E</label>
+        </div>
+
+        <div class="q-text"><strong>48</strong>. It takes time to become familiar with the characteristics of a company you have joined.</div>
+        <div class="choices" data-q="48">
+          <label class="choice"><input type="radio" name="q48" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q48" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q48" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q48" value="D"> D</label>
+          <label class="choice"><input type="radio" name="q48" value="E"> E</label>
+        </div>
+
+        <div class="q-text"><strong>49</strong>. You should demonstrate determination to improve your job prospects.</div>
+        <div class="choices" data-q="49">
+          <label class="choice"><input type="radio" name="q49" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q49" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q49" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q49" value="D"> D</label>
+          <label class="choice"><input type="radio" name="q49" value="E"> E</label>
+        </div>
+
+        <div class="q-text"><strong>54</strong>. Ask for information about your shortcomings.</div>
+        <div class="choices" data-q="54">
+          <label class="choice"><input type="radio" name="q54" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q54" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q54" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q54" value="D"> D</label>
+          <label class="choice"><input type="radio" name="q54" value="E"> E</label>
+        </div>
+
+        <div class="q-text"><strong>55</strong>. Some information you are given may not give a complete picture.</div>
+        <div class="choices" data-q="55">
+          <label class="choice"><input type="radio" name="q55" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q55" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q55" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q55" value="D"> D</label>
+          <label class="choice"><input type="radio" name="q55" value="E"> E</label>
+        </div>
+
+        <div class="q-text"><strong>56</strong>. It will be some time before you start giving your employers their money’s worth.</div>
+        <div class="choices" data-q="56">
+          <label class="choice"><input type="radio" name="q56" value="A"> A</label>
+          <label class="choice"><input type="radio" name="q56" value="B"> B</label>
+          <label class="choice"><input type="radio" name="q56" value="C"> C</label>
+          <label class="choice"><input type="radio" name="q56" value="D"> D</label>
+          <label class="choice"><input type="radio" name="q56" value="E"> E</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="btnValidate" class="success">Validate</button>
+      <button id="btnReview" class="secondary">Review answers</button>
+      <button id="btnExportTxt" class="secondary">Export TXT</button>
+      <button id="btnExportJson" class="secondary">Export JSON</button>
+      <a id="mailtoBtn" class="button" href="#">Email via mailto</a>
+      <button id="btnClear" class="warn">Clear all</button>
+    </div>
+  </section>
+</main>
+
+<!-- Review modal (simple page swap) -->
+<section id="reviewPage" class="review hidden" aria-label="Review answers">
+  <h2>Answer Review</h2>
+  <div id="reviewContainer"></div>
+  <div class="toolbar">
+    <button id="backToTest" class="secondary">Back to test</button>
+  </div>
+</section>
+
+<script>
+/* -------------------------
+   Data & helpers
+--------------------------*/
+const TOTAL = 20;
+const required = [
+  "q1","q2","q3","q4",
+  "q12","q13","q14","q15","q16",
+  "q25","q26","q30",
+  "q37","q38",
+  "q47","q48","q49","q54","q55","q56"
+];
+const localKey = "c1_practice_extract_responses_v1";
+
+function qs(sel, root=document){ return root.querySelector(sel); }
+function qsa(sel, root=document){ return [...root.querySelectorAll(sel)]; }
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(localKey);
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){return {}}
+}
+function saveState(state){
+  localStorage.setItem(localKey, JSON.stringify(state));
+}
+function getAnswers(){
+  const state = {};
+  // radio groups
+  qsa('.choices').forEach(group=>{
+    const name = group.getAttribute('data-q') || group.querySelector('input')?.name.replace(/^q/,'');
+    const inputs = qsa('input[type="radio"]', group);
+    const checked = inputs.find(i=>i.checked);
+    const qid = inputs[0]?.name;
+    if(qid){ state[qid] = checked ? checked.value : ""; }
+  });
+  // text gaps
+  qsa('.textgap').forEach(input=>{
+    state[input.name] = input.value.trim();
+  });
+  return state;
+}
+function setAnswers(state){
+  // radio
+  qsa('input[type="radio"]').forEach(inp=>{
+    if(state[inp.name] === inp.value){ inp.checked = true; }
+  });
+  // text
+  qsa('.textgap').forEach(inp=>{
+    if(state[inp.name] != null){ inp.value = state[inp.name]; }
+  });
+}
+function updateProgress(){
+  const state = getAnswers();
+  let done = 0;
+  required.forEach(k => { if(state[k] && state[k].length>0) done++; });
+  qs('#doneCount').textContent = done;
+  qs('#totalCount').textContent = TOTAL;
+  qs('#barFill').style.width = (done/TOTAL*100).toFixed(0)+'%';
+}
+function autosave(){
+  saveState(getAnswers());
+  updateProgress();
+}
+function scrollToQuestion(qid){
+  const el = document.getElementById(qid) || qsa(`[name="${qid}"]`)[0];
+  if(el){
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.focus({preventScroll:true});
+  }
+}
+
+/* -------------------------
+   Initialize
+--------------------------*/
+setAnswers(loadState());
+updateProgress();
+
+// listeners for autosave
+qsa('input').forEach(i=>{
+  i.addEventListener('change', autosave);
+  i.addEventListener('input', autosave);
+});
+
+// split/collapse reference
+const toggleRef = qs('#toggleRef');
+toggleRef.addEventListener('click', ()=>{
+  const col = qs('#refCol');
+  const hidden = col.classList.toggle('hidden');
+  toggleRef.setAttribute('aria-expanded', String(!hidden));
+  toggleRef.textContent = hidden ? "Show reference" : "Hide reference";
+});
+
+// tabs
+qsa('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    const id = tab.id.replace('tab','pane');
+    qsa('.tab').forEach(t=>t.setAttribute('aria-selected','false'));
+    qsa('.ref-pane').forEach(p=>p.setAttribute('aria-hidden','true'));
+    tab.setAttribute('aria-selected','true');
+    qs(id).setAttribute('aria-hidden','false');
+  });
+});
+
+/* -------------------------
+   Validation & Review
+--------------------------*/
+function validate(){
+  let state = getAnswers();
+  let firstError = null;
+  // clear previous error styles
+  qsa('.error').forEach(el=>el.classList.remove('error'));
+  // check each required
+  required.forEach(q=>{
+    const v = state[q];
+    if(!v){
+      // find element(s)
+      const inpText = qs(`#${q}`) || qs(`[name="${q}"]`);
+      if(inpText){
+        if(inpText.type === "radio"){
+          // highlight group
+          const group = inpText.closest('.choices');
+          if(group) group.classList.add('error');
+        } else {
+          inpText.classList.add('error');
+        }
+        if(!firstError){ firstError = inpText; }
+      }
+    }
+  });
+  updateProgress();
+  if(firstError){
+    alert("Please answer all required questions before submitting.");
+    firstError.scrollIntoView({behavior:'smooth', block:'center'});
+    firstError.focus({preventScroll:true});
+    return false;
+  }
+  return true;
+}
+
+function buildReview(state){
+  const container = qs('#reviewContainer');
+  container.innerHTML = "";
+  const parts = {};
+  // map qid to readable label
+  const labels = {
+    q1:"1", q2:"2", q3:"3", q4:"4",
+    q12:"12", q13:"13", q14:"14", q15:"15", q16:"16",
+    q25:"25", q26:"26", q30:"30",
+    q37:"37", q38:"38",
+    q47:"47", q48:"48", q49:"49", q54:"54", q55:"55", q56:"56"
+  };
+  Object.keys(state).forEach(k=>{
+    if(!(k in labels)) return;
+    let part = "Misc";
+    if(["q1","q2","q3","q4"].includes(k)) part="Part 1";
+    else if(["q12","q13","q14","q15","q16"].includes(k)) part="Part 2";
+    else if(["q25","q26","q30"].includes(k)) part="Part 4";
+    else if(["q37","q38"].includes(k)) part="Part 6";
+    else if(["q47","q48","q49","q54","q55","q56"].includes(k)) part="Part 8";
+    (parts[part] ||= []).push({qid:labels[k], val:state[k]});
+  });
+  Object.entries(parts).forEach(([part,items])=>{
+    const card = document.createElement('div');
+    card.className = 'rev-card';
+    card.innerHTML = `<h3>${part}</h3>`;
+    items.sort((a,b)=>+a.qid-+b.qid).forEach(item=>{
+      const row = document.createElement('div');
+      row.innerHTML = `<strong>Q${item.qid}:</strong> <span>${item.val ? escapeHtml(item.val) : "<em>—</em>"}</span>`;
+      card.appendChild(row);
+    });
+    container.appendChild(card);
+  });
+  // JSON preview
+  const pre = document.createElement('pre');
+  pre.className = 'mono';
+  pre.textContent = JSON.stringify(state, null, 2);
+  container.appendChild(pre);
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]));}
+
+qs('#btnValidate').addEventListener('click', ()=> validate());
+
+qs('#btnReview').addEventListener('click', ()=>{
+  if(!validate()) return;
+  const state = getAnswers();
+  buildReview(state);
+  qs('#app').classList.add('hidden');
+  qs('#reviewPage').classList.remove('hidden');
+});
+qs('#backToTest').addEventListener('click', ()=>{
+  qs('#reviewPage').classList.add('hidden');
+  qs('#app').classList.remove('hidden');
+});
+
+/* -------------------------
+   Export & Email
+--------------------------*/
+function answersAsText(state){
+  const lines = [];
+  lines.push("Reading & Use of English — Practice Extract");
+  lines.push("");
+  function pushRange(title, ids){
+    lines.push(title);
+    ids.forEach(id=>{ lines.push(`Q${id.replace('q','')}: ${state[id]||''}`); });
+    lines.push("");
+  }
+  pushRange("Part 1", ["q1","q2","q3","q4"]);
+  pushRange("Part 2", ["q12","q13","q14","q15","q16"]);
+  pushRange("Part 4", ["q25","q26","q30"]);
+  pushRange("Part 6", ["q37","q38"]);
+  pushRange("Part 8", ["q47","q48","q49","q54","q55","q56"]);
+  return lines.join("\n");
+}
+function download(filename, text, mime="text/plain"){
+  const blob = new Blob([text], {type: mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+qs('#btnExportTxt').addEventListener('click', ()=>{
+  const txt = answersAsText(getAnswers());
+  download("answers.txt", txt, "text/plain");
+});
+qs('#btnExportJson').addEventListener('click', ()=>{
+  const json = JSON.stringify(getAnswers(), null, 2);
+  download("answers.json", json, "application/json");
+});
+
+// mailto
+qs('#mailtoBtn').addEventListener('click', (e)=>{
+  if(!validate()){ e.preventDefault(); return; }
+  const to = ""; // optional: fill in default recipient
+  const subject = encodeURIComponent("C1 Practice Extract — Answers");
+  const body = encodeURIComponent(answersAsText(getAnswers()));
+  const href = `mailto:${to}?subject=${subject}&body=${body}`;
+  e.currentTarget.href = href;
+});
+
+/* -------------------------
+   Clear all
+--------------------------*/
+qs('#btnClear').addEventListener('click', ()=>{
+  if(!confirm("Clear all answers?")) return;
+  localStorage.removeItem(localKey);
+  qsa('input[type="radio"]').forEach(i=>i.checked=false);
+  qsa('.textgap').forEach(i=>i.value="");
+  autosave();
+});
+
+/* -------------------------
+   Smooth scroll between questions via hash
+--------------------------*/
+if(location.hash){
+  setTimeout(()=> scrollToQuestion(location.hash.slice(1)), 200);
+}
+
+/* -------------------------
+   Optional: basic offline hint
+--------------------------*/
+window.addEventListener('load', ()=> {
+  // The single-file app works offline after initial load via browser cache.
+  // No service-worker used to keep it dependency-free.
+});
+</script>
+</body>
+</html>
