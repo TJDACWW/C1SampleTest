@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>C1 Advanced – Listening (Selected Sections) • Mobile Test Interface</title>
+<style>
+  :root{
+    --bg:#ffffff; --ink:#111; --muted:#666; --accent:#2457f5; --soft:#f3f5fb;
+    --ok:#1a7f37; --warn:#b54708; --err:#b42318; --pill:#eef2ff;
+    --tap:44px; --radius:16px; --shadow:0 6px 20px rgba(0,0,0,.08);
+  }
+  html,body{height:100%}
+  body{
+    margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+    color:var(--ink); background:var(--bg); line-height:1.45;
+  }
+  /* Layout */
+  .app{
+    display:grid; grid-template-columns: 1fr 1fr; gap:0; height:100vh;
+  }
+  .panel{
+    overflow:auto; -webkit-overflow-scrolling:touch;
+    display:flex; flex-direction:column;
+  }
+  .panel--ref{border-right:1px solid #e9edf7; background:var(--soft)}
+  .panel--work{background:var(--bg)}
+  header.top{
+    position:sticky; top:0; z-index:3; background:#fff; box-shadow:var(--shadow);
+    padding:10px 12px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+  }
+  header.top h1{font-size:18px; margin:0; flex:1}
+  .progress{font-size:13px; color:var(--muted)}
+  .bar{height:8px; background:#e9edf7; border-radius:999px; overflow:hidden}
+  .bar>span{display:block; height:100%; background:var(--accent); width:0}
+  /* Pills (always visible content; pills are jump links, not toggles) */
+  .pills{display:flex; gap:8px; flex-wrap:wrap}
+  .pill{
+    display:inline-flex; align-items:center; gap:8px; padding:10px 14px; min-height:var(--tap);
+    border-radius:999px; background:var(--pill); color:#1e3a8a; border:1px solid #c7d2fe;
+    font-weight:600; text-decoration:none; user-select:none;
+  }
+  .pill small{font-weight:500; color:#475569}
+  /* Reference content */
+  .ref-section{padding:14px 14px 0}
+  .card{
+    background:#fff; border:1px solid #e5e7eb; border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:14px; margin:12px 0;
+  }
+  .card h3{margin:.2rem 0 .5rem 0; font-size:16px}
+  .meta{font-size:13px; color:var(--muted)}
+  .options{display:grid; gap:6px; margin-top:8px}
+  .opt{padding:10px 12px; border-radius:10px; background:#f8fafc; border:1px solid #e5e7eb}
+  /* Work (questions) */
+  .block{padding:16px}
+  .q{
+    background:#fff; border:1px solid #e5e7eb; border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:14px; margin:12px 0;
+  }
+  .q h4{margin:.2rem 0 .4rem 0; font-size:16px}
+  .q .prompt{color:#0f172a; margin:.25rem 0 .5rem 0}
+  .choices{display:grid; gap:8px}
+  .choice input{display:none}
+  .choice label{
+    display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px solid #e5e7eb;
+    border-radius:12px; padding:12px; min-height:var(--tap); cursor:pointer;
+  }
+  .choice input:checked + label{border-color:var(--accent); outline:2px solid transparent; box-shadow:0 0 0 2px rgba(36,87,245,.15)}
+  .short input, .short textarea{
+    width:100%; font-size:16px; padding:12px; min-height:var(--tap);
+    border-radius:12px; border:1px solid #e5e7eb; background:#f8fafc;
+  }
+  .short textarea{resize:vertical}
+  .foot-actions{
+    position:sticky; bottom:0; background:#fff; box-shadow:0 -8px 24px rgba(0,0,0,.06);
+    padding:12px; display:flex; gap:10px; flex-wrap:wrap; z-index:3;
+  }
+  .btn{
+    min-height:var(--tap); padding:10px 14px; border-radius:12px; border:1px solid #cbd5e1; background:#fff; cursor:pointer;
+    font-weight:600;
+  }
+  .btn.primary{background:var(--accent); color:#fff; border-color:var(--accent)}
+  .btn.good{background:#e8f5ee; border-color:#b7e2c8; color:#146c43}
+  .btn.warn{background:#fff7ed; border-color:#fed7aa; color:#9a3412}
+  .btn.ghost{background:#f8fafc}
+  .hint{font-size:12px; color:var(--muted)}
+  /* Review page */
+  dialog{border:none; border-radius:20px; width:min(720px, 92vw); box-shadow:var(--shadow); padding:0}
+  dialog header{padding:14px 16px; border-bottom:1px solid #e5e7eb}
+  dialog .content{max-height:min(70vh, 70dvh); overflow:auto; padding:14px 16px}
+  dialog footer{padding:12px 16px; border-top:1px solid #e5e7eb; display:flex; gap:8px; justify-content:flex-end}
+  .miss{color:var(--err); font-weight:700}
+  /* Utilities */
+  .sr{position:absolute; left:-9999px}
+  .section-title{margin:8px 0 4px 0; font-size:13px; text-transform:uppercase; letter-spacing:.08em; color:#475569}
+  .hr{height:1px; background:#e9edf7; margin:8px 0}
+  /* Mobile */
+  @media (max-width: 900px){
+    .app{grid-template-columns: 1fr}
+    .panel--ref{order:-1; height:45vh}
+    .panel--work{height:55vh}
+  }
+  @media (max-width: 420px){
+    header.top h1{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- REFERENCE PANEL (always-visible text; pills are jump links, not hiding content) -->
+  <section class="panel panel--ref" id="refPanel" aria-label="Reference">
+    <header class="top">
+      <h1>Reference Texts</h1>
+      <nav class="pills" aria-label="Quick links">
+        <a class="pill" href="#ref-p1"><span>Part 1</span> <small>Extract 1 Q1–2</small></a>
+        <a class="pill" href="#ref-p2"><span>Part 2</span> <small>Q7–14</small></a>
+        <a class="pill" href="#ref-p4"><span>Part 4</span> <small>Task 1–2 (S1–2)</small></a>
+      </nav>
+    </header>
+
+    <div class="ref-section" id="ref-p1">
+      <div class="section-title">Listening — Part 1</div>
+      <div class="card">
+        <h3>Instructions</h3>
+        <div class="meta">You will hear three different extracts. For questions 1–6, choose A, B or C. Two questions per extract.</div>
+        <div class="hr"></div>
+        <h3>Extract One — Two friends discussing marketing</h3>
+        <div class="options">
+          <div class="opt"><strong>Q1.</strong> Which aspect of college publicity material do the friends disagree about? <em>A</em> environmental rating usefulness • <em>B</em> course descriptions • <em>C</em> visual attractiveness</div>
+          <div class="opt"><strong>Q2.</strong> In the woman’s opinion, companies link themselves with charities to <em>A</em> boost profits • <em>B</em> improve image • <em>C</em> distract from other issues</div>
+        </div>
+        <!-- Source: C1 Advanced sample paper 1 Listening.pdf, p.2–3 -->
+      </div>
+    </div>
+
+    <div class="ref-section" id="ref-p2">
+      <div class="section-title">Listening — Part 2</div>
+      <div class="card">
+        <h3>Instructions</h3>
+        <div class="meta">You will hear Josh Brady talking about a botany trip to South Africa. For questions 7–14, complete each sentence with <strong>a word or short phrase</strong>.</div>
+        <div class="hr"></div>
+        <h3>TRIP TO SOUTH AFRICA — Sentence stems</h3>
+        <ol class="options">
+          <li class="opt">7. As well as his research project, Josh planned to write a <u>__________</u> for a website while in Africa.</li>
+          <li class="opt">8. The group planned to check a region after a <u>__________</u> had occurred there.</li>
+          <li class="opt">9. Josh was surprised to see <u>__________</u> being grown in the first area they visited.</li>
+          <li class="opt">10. The vehicle they travelled in was a <u>__________</u> when searching for specimens.</li>
+          <li class="opt">11. Josh uses the word <u>__________</u> to describe the leaf shape he found.</li>
+          <li class="opt">12. He was impressed by a flower that was <u>__________</u> in colour.</li>
+          <li class="opt">13. Josh uses the word <u>__________</u> to convey his feelings about an area of vegetation.</li>
+          <li class="opt">14. He appreciated the view from the <u>__________</u> of his accommodation.</li>
+        </ol>
+        <!-- Source: C1 Advanced sample paper 1 Listening.pdf, p.4 -->
+      </div>
+    </div>
+
+    <div class="ref-section" id="ref-p4">
+      <div class="section-title">Listening — Part 4</div>
+      <div class="card">
+        <h3>Instructions</h3>
+        <p class="meta">You will hear five short extracts about changing jobs. <strong>Task One</strong>: for Q21–25 choose the reason (A–H). <strong>Task Two</strong>: for Q26–30 choose how the speaker feels (A–H). Complete both tasks while listening.</p>
+        <div class="hr"></div>
+        <h3>Task One — Reasons (A–H)</h3>
+        <div class="options">
+          <div class="opt"><strong>A</strong> unfriendly colleagues</div>
+          <div class="opt"><strong>B</strong> poor holiday entitlement</div>
+          <div class="opt"><strong>C</strong> lacking a sense of purpose</div>
+          <div class="opt"><strong>D</strong> needing more of a challenge</div>
+          <div class="opt"><strong>E</strong> the workload</div>
+          <div class="opt"><strong>F</strong> disagreements with superiors</div>
+          <div class="opt"><strong>G</strong> no prospect of advancement</div>
+          <div class="opt"><strong>H</strong> the physical environment</div>
+        </div>
+        <div class="hr"></div>
+        <h3>Task Two — Feelings (A–H)</h3>
+        <div class="options">
+          <div class="opt"><strong>A</strong> encouraged by early results</div>
+          <div class="opt"><strong>B</strong> hopeful about future success</div>
+          <div class="opt"><strong>C</strong> delighted by a change in lifestyle</div>
+          <div class="opt"><strong>D</strong> relieved the initial uncertainty is over</div>
+          <div class="opt"><strong>E</strong> glad to be helping other people</div>
+          <div class="opt"><strong>F</strong> grateful for an increase in salary</div>
+          <div class="opt"><strong>G</strong> happy to feel in control</div>
+          <div class="opt"><strong>H</strong> satisfied with the training received</div>
+        </div>
+        <!-- Source: C1 Advanced sample paper 1 Listening.pdf, p.6 -->
+      </div>
+    </div>
+    <div style="height:16px"></div>
+  </section>
+
+  <!-- WORK PANEL -->
+  <section class="panel panel--work" id="workPanel" aria-label="Questions">
+    <header class="top">
+      <h1>Answer Sheet</h1>
+      <div style="min-width:160px">
+        <div class="progress"><span id="progressText">0 / 12 answered</span></div>
+        <div class="bar" aria-hidden="true"><span id="progressBar"></span></div>
+      </div>
+      <button class="btn ghost" id="jumpTop" type="button" onclick="document.querySelector('#workPanel').scrollTo({top:0,behavior:'smooth'})">Top</button>
+    </header>
+
+    <div class="block" id="questions">
+      <!-- Part 1 -->
+      <div class="q" id="q1">
+        <h4>Part 1 — Extract One</h4>
+        <div class="prompt"><strong>Q1.</strong> Which aspect of college publicity material do the friends disagree about?</div>
+        <div class="choices" role="group" aria-labelledby="q1">
+          <div class="choice"><input type="radio" name="Q1" id="Q1A" value="A"><label for="Q1A">A — how useful the environmental rating system is</label></div>
+          <div class="choice"><input type="radio" name="Q1" id="Q1B" value="B"><label for="Q1B">B — how well the different courses are described</label></div>
+          <div class="choice"><input type="radio" name="Q1" id="Q1C" value="C"><label for="Q1C">C — how visually attractive the brochures are</label></div>
+        </div>
+      </div>
+
+      <div class="q" id="q2">
+        <div class="prompt"><strong>Q2.</strong> In the woman’s opinion, companies link themselves with charities in order to …</div>
+        <div class="choices" role="group" aria-labelledby="q2">
+          <div class="choice"><input type="radio" name="Q2" id="Q2A" value="A"><label for="Q2A">A — boost their profits</label></div>
+          <div class="choice"><input type="radio" name="Q2" id="Q2B" value="B"><label for="Q2B">B — improve their image in society</label></div>
+          <div class="choice"><input type="radio" name="Q2" id="Q2C" value="C"><label for="Q2C">C — distract attention away from other issues</label></div>
+        </div>
+      </div>
+
+      <!-- Part 2 (7—14) -->
+      <div class="q" id="q7">
+        <h4>Part 2 — Sentence Completion</h4>
+        <div class="prompt"><strong>Q7.</strong> As well as his research project, Josh planned to write a … for a website while he was in Africa.</div>
+        <div class="short"><input type="text" name="Q7" placeholder="Type your answer" autocomplete="off"></div>
+      </div>
+
+      <div class="q" id="q8"><div class="prompt"><strong>Q8.</strong> The group planned to check out a region after a … had occurred there.</div><div class="short"><input type="text" name="Q8" placeholder="Type your answer"></div></div>
+      <div class="q" id="q9"><div class="prompt"><strong>Q9.</strong> Josh was surprised to see … being grown in the first area they visited.</div><div class="short"><input type="text" name="Q9" placeholder="Type your answer"></div></div>
+      <div class="q" id="q10"><div class="prompt"><strong>Q10.</strong> He describes the vehicle they travelled in as a … when searching for specimens.</div><div class="short"><input type="text" name="Q10" placeholder="Type your answer"></div></div>
+      <div class="q" id="q11"><div class="prompt"><strong>Q11.</strong> Josh uses the word … to give an idea of the leaf shape he found.</div><div class="short"><input type="text" name="Q11" placeholder="Type your answer"></div></div>
+      <div class="q" id="q12"><div class="prompt"><strong>Q12.</strong> He was particularly impressed by one type of flower which was … in colour.</div><div class="short"><input type="text" name="Q12" placeholder="Type your answer"></div></div>
+      <div class="q" id="q13"><div class="prompt"><strong>Q13.</strong> Josh uses the word … to convey his feelings about an area of vegetation he studied.</div><div class="short"><input type="text" name="Q13" placeholder="Type your answer"></div></div>
+      <div class="q" id="q14"><div class="prompt"><strong>Q14.</strong> He appreciated the view from the … of his accommodation.</div><div class="short"><input type="text" name="Q14" placeholder="Type your answer"></div></div>
+
+      <!-- Part 4 (Speakers 1–2 only) -->
+      <div class="q" id="q21">
+        <h4>Part 4 — Speaker 1</h4>
+        <div class="prompt"><strong>Q21 (Task One).</strong> Reason for changing job (A–H)</div>
+        <div class="choices">
+          <!-- reasons A–H -->
+          <template id="templ-reasons"></template>
+        </div>
+      </div>
+
+      <div class="q" id="q26">
+        <div class="prompt"><strong>Q26 (Task Two).</strong> Feeling about new job (A–H)</div>
+        <div class="choices">
+          <!-- feelings A–H -->
+          <template id="templ-feelings"></template>
+        </div>
+      </div>
+
+      <div class="q" id="q22">
+        <h4>Part 4 — Speaker 2</h4>
+        <div class="prompt"><strong>Q22 (Task One).</strong> Reason for changing job (A–H)</div>
+        <div class="choices"><!-- reasons A–H will be injected --></div>
+      </div>
+
+      <div class="q" id="q27">
+        <div class="prompt"><strong>Q27 (Task Two).</strong> Feeling about new job (A–H)</div>
+        <div class="choices"><!-- feelings A–H will be injected --></div>
+      </div>
+
+      <div class="foot-actions">
+        <button class="btn" type="button" id="reviewBtn">Review Answers</button>
+        <button class="btn good" type="button" id="exportTxt">Export Text</button>
+        <button class="btn good" type="button" id="exportJson">Export JSON</button>
+        <a class="btn primary" id="mailtoBtn" href="#" target="_blank" rel="noopener">Email Answers</a>
+        <span class="hint" id="saveHint">Autosaved locally ✓</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- REVIEW DIALOG -->
+<dialog id="reviewDlg" aria-labelledby="rv-title">
+  <header><strong id="rv-title">Answer Review</strong></header>
+  <div class="content" id="reviewContent"></div>
+  <footer>
+    <button class="btn" onclick="reviewDlg.close()">Close</button>
+    <button class="btn primary" onclick="reviewDlg.close();document.querySelector('#workPanel').scrollTo({top:0,behavior:'smooth'})">Back to top</button>
+  </footer>
+</dialog>
+
+<script>
+/* ====== Data (in-file; works offline) ====== */
+const P4_REASONS = {
+  A: "unfriendly colleagues",
+  B: "poor holiday entitlement",
+  C: "lacking a sense of purpose",
+  D: "needing more of a challenge",
+  E: "the workload",
+  F: "disagreements with superiors",
+  G: "no prospect of advancement",
+  H: "the physical environment",
+};
+const P4_FEELINGS = {
+  A: "encouraged by early results",
+  B: "hopeful about future success",
+  C: "delighted by a change in lifestyle",
+  D: "relieved the initial uncertainty is over",
+  E: "glad to be helping other people",
+  F: "grateful for an increase in salary",
+  G: "happy to feel in control",
+  H: "satisfied with the training received",
+};
+
+const ALL_IDS = ["Q1","Q2","Q7","Q8","Q9","Q10","Q11","Q12","Q13","Q14","Q21","Q26","Q22","Q27"];
+const REQUIRED_IDS = ALL_IDS.slice(); // all required in this prototype
+
+/* ====== Helpers ====== */
+const $ = (sel, ctx=document) => ctx.querySelector(sel);
+const $$ = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
+const smoothTo = id => { const el = document.getElementById(id); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); };
+
+function injectChoices(container, name, labels){
+  const frag = document.createDocumentFragment();
+  Object.entries(labels).forEach(([key, text])=>{
+    const wrap = document.createElement("div"); wrap.className="choice";
+    const id = `${name}${key}`;
+    const inp = Object.assign(document.createElement("input"), {type:"radio", name, id, value:key});
+    const lab = document.createElement("label"); lab.htmlFor = id; lab.textContent = `${key} — ${text}`;
+    wrap.append(inp, lab); frag.appendChild(wrap);
+  });
+  container.appendChild(frag);
+}
+
+/* ====== Build Part 4 answer sets (duplicate lists for each question) ====== */
+injectChoices($("#q21 .choices"), "Q21", P4_REASONS);
+injectChoices($("#q26 .choices"), "Q26", P4_FEELINGS);
+injectChoices($("#q22 .choices"), "Q22", P4_REASONS);
+injectChoices($("#q27 .choices"), "Q27", P4_FEELINGS);
+
+/* ====== State: Autosave to localStorage ====== */
+const KEY = "c1_listening_selected_sections_v1";
+function readState(){
+  try{ return JSON.parse(localStorage.getItem(KEY) || "{}"); }catch(e){ return {}; }
+}
+function writeState(s){ localStorage.setItem(KEY, JSON.stringify(s)); $("#saveHint").textContent = "Autosaved locally ✓"; }
+function capture(){
+  const s = {};
+  // radios
+  $$("input[type=radio]").filter(i=>i.checked).forEach(i=> s[i.name]=i.value);
+  // text inputs
+  $$("input[type=text], textarea").forEach(i=> s[i.name]=i.value);
+  return s;
+}
+function applyState(s){
+  Object.entries(s).forEach(([k,v])=>{
+    const r = document.querySelector(`input[name="${k}"][value="${v}"]`);
+    if(r) r.checked = true;
+    const t = document.querySelector(`[name="${k}"]`);
+    if(t && (t.type==="text" || t.tagName==="TEXTAREA")) t.value = v;
+  });
+}
+function updateProgress(){
+  const s = capture();
+  const answered = REQUIRED_IDS.filter(id=>{
+    if(/^Q(1|2|21|22|26|27)$/.test(id)){ return !!s[id]; }
+    return (s[id] && s[id].trim().length>0);
+  }).length;
+  $("#progressText").textContent = `${answered} / ${REQUIRED_IDS.length} answered`;
+  $("#progressBar").style.width = `${Math.round(100*answered/REQUIRED_IDS.length)}%`;
+}
+
+/* Save on any input change */
+document.addEventListener("input", (e)=>{
+  writeState(capture()); updateProgress();
+});
+
+/* Init from storage */
+applyState(readState()); updateProgress();
+
+/* ====== Email via mailto (simple) ====== */
+function answersAsText(){
+  const s = capture();
+  const lines = [];
+  lines.push("C1 Advanced — Listening (Selected Sections)");
+  lines.push("==========================================");
+  lines.push("");
+  const label = id => {
+    if(id==="Q21"||id==="Q22") return `${id} (Reason)`;
+    if(id==="Q26"||id==="Q27") return `${id} (Feeling)`;
+    return id;
+  };
+  for(const id of ALL_IDS){
+    let val = s[id] || "";
+    if(["Q21","Q22"].includes(id)) val = val ? `${val} — ${P4_REASONS[val]}` : "";
+    if(["Q26","Q27"].includes(id)) val = val ? `${val} — ${P4_FEELINGS[val]}` : "";
+    lines.push(`${label(id)}: ${val}`);
+  }
+  return lines.join("\n");
+}
+function answersAsJson(){
+  const s = capture();
+  return JSON.stringify({
+    meta:{paper:"C1 Advanced Listening", sections:"P1(1–2), P2(7–14), P4(S1–2)", exported:new Date().toISOString()},
+    answers: s
+  }, null, 2);
+}
+function updateMailto(){
+  const body = encodeURIComponent(answersAsText());
+  const subj = encodeURIComponent("C1 Advanced Listening — Test Submission");
+  $("#mailtoBtn").href = `mailto:?subject=${subj}&body=${body}`;
+}
+updateMailto();
+document.addEventListener("input", updateMailto);
+
+/* ====== Export buttons ====== */
+$("#exportTxt").addEventListener("click", ()=>{
+  const blob = new Blob([answersAsText()], {type:"text/plain"});
+  const a = Object.assign(document.createElement("a"), {href: URL.createObjectURL(blob), download:"listening_answers.txt"});
+  a.click(); URL.revokeObjectURL(a.href);
+});
+$("#exportJson").addEventListener("click", ()=>{
+  const blob = new Blob([answersAsJson()], {type:"application/json"});
+  const a = Object.assign(document.createElement("a"), {href: URL.createObjectURL(blob), download:"listening_answers.json"});
+  a.click(); URL.revokeObjectURL(a.href);
+});
+
+/* ====== Review & Validation ====== */
+const reviewDlg = $("#reviewDlg");
+$("#reviewBtn").addEventListener("click", ()=>{
+  const s = capture();
+  const missing = REQUIRED_IDS.filter(id=>{
+    if(/^Q(1|2|21|22|26|27)$/.test(id)) return !s[id];
+    return !(s[id] && s[id].trim().length>0);
+  });
+  const wrap = $("#reviewContent"); wrap.innerHTML = "";
+  // Summary list
+  const ul = document.createElement("ul");
+  ul.style.paddingLeft = "1.1rem";
+  ALL_IDS.forEach(id=>{
+    const li = document.createElement("li");
+    let val = s[id] || "—";
+    if(["Q21","Q22"].includes(id) && s[id]) val = `${s[id]} — ${P4_REASONS[s[id]]}`;
+    if(["Q26","Q27"].includes(id) && s[id]) val = `${s[id]} — ${P4_FEELINGS[s[id]]}`;
+    li.innerHTML = `<strong>${id}</strong>: ${val}`;
+    if(missing.includes(id)) li.classList.add("miss");
+    ul.appendChild(li);
+  });
+  wrap.appendChild(ul);
+  // Guidance
+  const p = document.createElement("p");
+  p.innerHTML = missing.length ? `<span class="miss">${missing.length} question(s) need an answer.</span> Tap a pill at the top of the <em>Reference Texts</em> panel to review stems/options.`
+                                : `<span style="color:var(--ok);font-weight:700">All questions answered.</span> You can export or email your answers.`;
+  wrap.appendChild(p);
+  reviewDlg.showModal();
+});
+
+/* ====== Accessibility & UX niceties ====== */
+$("#jumpTop").addEventListener("click", e=>e.blur());
+// Smooth scroll for internal links (pills)
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener("click", (e)=>{
+    const id = a.getAttribute("href").slice(1);
+    const el = document.getElementById(id);
+    if(el){ e.preventDefault(); el.scrollIntoView({behavior:"smooth", block:"start"}); }
+  });
+});
+
+/* Keep reference text visible/persistent:
+   - All reference sections remain in DOM at once.
+   - Pills only scroll; they do NOT hide/collapse content.
+   - No content disappears when navigating between pills.
+*/
+</script>
+</body>
+</html>
